@@ -4,7 +4,17 @@
 
 Manually tweaked, auto-generated [raylib](https://github.com/raysan5/raylib) bindings for zig.
 
-Bindings tested on raylib version 5.6-dev and Zig 0.15.1
+Bindings target raylib version 5.6-dev and require Zig 0.17.0.
+
+| Zig build dependency | Version | Source |
+| --- | --- | --- |
+| raylib | 5.6.0-dev | `cataggar/raylib` at `67cd36d787dc6d3b6aa2ee79ec252a3222a756e6` |
+| raygui | Pinned source | `raysan5/raygui` at `3b2855842ab578a034f827c38cf8f62c042fc983` |
+| emsdk | 4.0.9 | `emscripten-core/emsdk` tag `4.0.9` |
+| zemscripten | 0.2.0-dev | `cataggar/zemscripten` at `35a81b5323d07d7cca50d6db60295268ae856324` |
+
+The direct Emscripten helper retains its custom-output interface and is
+distinct from the C dependency's default-output helper generation.
 
 Thanks to all the [contributors](https://github.com/raylib-zig/raylib-zig/graphs/contributors) for their help with this
 binding.
@@ -50,6 +60,15 @@ pub fn main() anyerror!void {
 
 To build all available examples simply `zig build examples`. To list available examples run `zig build --help`. If you
 want to run an example, say `basic_window` run `zig build basic_window`
+
+`zig build test` retains the declaration-compilation checks for both raylib and
+raygui. The examples remain enabled, including native and Emscripten paths.
+Android consumers retain the `android_ndk`, `android_api_version`, static
+library, and module hooks.
+Android declaration checks use the same NDK library paths and libc metadata
+as the C library.
+The project generator uses the same Zig 0.17 installed-path API as the
+examples.
 
 ## Building and using
 
@@ -148,7 +167,7 @@ if (target.query.os_tag == .emscripten) {
     const html_filename = try std.fmt.allocPrint(b.allocator, "{s}.html", .{wasm.name});
     const emrun_step = emsdk.emrunStep(
         b,
-        b.getInstallPath(install_dir, html_filename),
+        b.graph.path(.install_prefix, b.pathJoin(&.{ "web", html_filename })),
         &.{},
     );
 

@@ -422,6 +422,15 @@ pub fn build(b: *std.Build) !void {
     raygui_test.root_module.addImport("raylib-zig", raylib);
     raygui_test.root_module.link_libc = true;
 
+    if (target.result.abi.isAndroid()) {
+        for (raylib_artifact.root_module.lib_paths.items) |path| {
+            raylib_test.root_module.addLibraryPath(path);
+            raygui_test.root_module.addLibraryPath(path);
+        }
+        raylib_test.setLibCFile(raylib_artifact.libc_file);
+        raygui_test.setLibCFile(raylib_artifact.libc_file);
+    }
+
     const test_step = b.step("test", "Check for library compilation errors");
     test_step.dependOn(&raylib_test.step);
     test_step.dependOn(&raygui_test.step);
@@ -464,7 +473,7 @@ pub fn build(b: *std.Build) !void {
             const html_filename = try std.fmt.allocPrint(b.allocator, "{s}.html", .{wasm.name});
             const emrun_step = emsdk.emrunStep(
                 b,
-                b.getInstallPath(install_dir, html_filename),
+                b.graph.path(.install_prefix, b.pathJoin(&.{ "web", html_filename })),
                 &.{},
             );
             emrun_step.dependOn(emcc_step);

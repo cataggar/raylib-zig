@@ -62,7 +62,7 @@ pub fn build(b: *std.Build) !void {
         const html_filename = try std.fmt.allocPrint(b.allocator, "{s}.html", .{wasm.name});
         const emrun_step = emsdk.emrunStep(
             b,
-            b.getInstallPath(install_dir, html_filename),
+            b.graph.path(.install_prefix, b.pathJoin(&.{ "web", html_filename })),
             &.{},
         );
 
